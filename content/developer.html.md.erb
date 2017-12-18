@@ -54,6 +54,8 @@ The PCC service broker supports the following parameters:
 
 - `num_servers`: An integer that specifies the number of server instances in the cluster. The minimum value is `4`. The maximum and default values are configured by the operator.
 - `new_size_percentage`: An integer that specifies the percentage of the heap to allocate to young generation. This value must be between `5` and `83`. By default, the new size is 2&nbsp;GB or 10% of heap, whichever is smaller.
+- `persistent_regions`: A boolean that represents how the servers in cluster recover from failures or outages. If this is set to true it is required that all your regions must have persistence enabled, otherwise dead lock could occur in your cluster when recovering.
+ * If you attempt to update the service instance by setting `persistent_regions` as true and there exist non persistent regions then it could result in dead lock and vice versa.
 
 The following example creates the service with five service instances in the cluster:
 
@@ -103,15 +105,15 @@ To use `spring-session` with PCC, follow the steps below:
 
 A dev plan is a type of service plan.
 You can use a dev plan for minimal development and testing.
-The plan's locator and server are colocated on a single VM. 
+The plan's locator and server are colocated on a single VM.
 
 <p class="note warning"><strong> WARNING</strong>: All of the dev plan data is stored on a single VM.
    When your service instance is updated or upgraded, the data is wiped from the VM and the VM itself is recycled.
    Therefore, there is data loss when you perform an update or upgrade.</p>
 
-If your dev plan has been configured to create a dev region by default, 
+If your dev plan has been configured to create a dev region by default,
 PCC creates a sample region called `example_partition_region` of type `PARTITION_REDUNDANT_HEAP_LRU`.
-You can use this region for development and testing. 
+You can use this region for development and testing.
 
 If the `example_partition_region` has **not** been created,
 it is probably because post-deploy scripts are not enabled for Ops Manager.
@@ -359,8 +361,22 @@ gfsh>connect --use-http --url=gfsh-url --user=cluster_operator --password=cluste
 ### <a id="create-regions"></a> Create Regions with gfsh
 
 After connecting with gfsh as a `cluster_operator`, you can define a new cache region.
+***
+**NOTE:**  In the case of using peristent regions you need to ensure that you have enabled [`persistent_regions`](#params) flag on the pcc service instance.
+***
+When creating regions one can use the following region types:
 
-The following command creates a partitioned region with a single redundant copy:
+  * Persistent
+    * `PARTITION_REDUNDANT_PERSISTENT_OVERFLOW`
+    * `REPLICATE_PERSISTENT_OVERFLOW`
+  * Non-Persistent
+    * `PARTITION_REDUNDANT_HEAP_LRU`
+    * `REPLICATE_HEAP_LRU`
+
+See [Region Design](../app-development.html#region-design)
+for guidelines on choosing a region type.
+
+The following command create a non-persistent partitioned region with a single redundant copy:
 
 <pre class='terminal'>
 gfsh>create region --name=my-cache-region --type=PARTITION_REDUNDANT_HEAP_LRU

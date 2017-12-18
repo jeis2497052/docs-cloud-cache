@@ -126,6 +126,8 @@ hits the threshold of being low on memory.
 The oldest entry in the bucket where a new entry lives
 is the one chosen for destruction.
 The default number of redundant copies is 1.
+- `PARTITION_REDUNDANT_PERSISTENT_OVERFLOW`
+Behaviorly the same as `PARTITION_REDUNDANT_HEAP_LRU`, except that all data is persisted to local disk. In addition, all data is overflowed (in case of low memory) will be written to local disk as well.
 
 ### <a id="replicated-regions"></a> Replicated Regions
 
@@ -166,6 +168,8 @@ All servers hosting the region have a copy of all entries.
 All servers hosting the region have a copy of all entries.
 All servers destroy entries when a server (its JVM)
 hits the threshold of being low on memory.
+- `REPLICATE_PERSISTENT_HEAP_LRU` 
+The same as `REPLICATE_HEAP_LRU`, except that the data within the region is persisted to local disk. In addition, all data that is overflowed (due to low memory) will be stored on local disk as well.
 
 
 ### <a id="app-regions"></a> Regions as Used by the App
